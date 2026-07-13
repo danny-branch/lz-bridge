@@ -59,14 +59,14 @@ button {
 }
 
 .container {
-  max-width: 980px;
+  max-width: 1080px;
   margin: 0 auto;
-  padding: 48px 24px 80px;
+  padding: 56px 28px 90px;
 }
 
 .eyebrow {
   font-family: var(--font-display);
-  font-size: 12px;
+  font-size: 13px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--text-muted);

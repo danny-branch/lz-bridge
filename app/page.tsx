@@ -27,7 +27,7 @@ export default function Home() {
           gap: 14px;
         }
         .title {
-          font-size: 36px;
+          font-size: 44px;
           font-weight: 600;
           margin: 0;
           letter-spacing: -0.02em;
@@ -40,14 +40,14 @@ export default function Home() {
         }
         .subtitle {
           color: var(--text-muted);
-          font-size: 15px;
+          font-size: 16.5px;
           line-height: 1.6;
-          max-width: 640px;
+          max-width: 680px;
           margin: 0;
         }
         .footer {
           margin-top: 40px;
-          font-size: 11.5px;
+          font-size: 12.5px;
           color: var(--text-muted);
           line-height: 1.6;
           border-top: 1px solid var(--hairline);

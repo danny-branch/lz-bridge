@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { LZ_CHAINS } from "@/lib/chains";
 
 export function ChainSelect({
@@ -20,8 +21,14 @@ export function ChainSelect({
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [rect, setRect] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [mounted, setMounted] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => setMounted(true), []);
 
   const active = LZ_CHAINS.find((c) => c.key === value);
   const options = useMemo(() => {
@@ -31,13 +38,23 @@ export function ChainSelect({
     );
   }, [exclude, query]);
 
+  function openDropdown() {
+    const r = buttonRef.current?.getBoundingClientRect();
+    if (r) setRect({ top: r.bottom + 6, left: r.left, width: r.width });
+    setOpen(true);
+  }
+
+  // The dropdown lives in a portal (document.body), so clicks/positioning
+  // need to check both the trigger and the portaled panel — a card ancestor's
+  // backdrop-filter creates a stacking context that otherwise clips it behind
+  // later sibling cards.
   useEffect(() => {
     if (!open) return;
-    function onDocClick(e: MouseEvent) {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
-        setOpen(false);
-        setQuery("");
-      }
+    function onDocPointerDown(e: MouseEvent) {
+      const target = e.target as Node;
+      if (rootRef.current?.contains(target) || dropdownRef.current?.contains(target)) return;
+      setOpen(false);
+      setQuery("");
     }
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") {
@@ -45,12 +62,24 @@ export function ChainSelect({
         setQuery("");
       }
     }
-    document.addEventListener("mousedown", onDocClick);
+    function onScrollOrResize(e: Event) {
+      // Scrolling the options list itself dispatches a scroll event that
+      // bubbles up through the capture phase — ignore that one so the list
+      // stays open and scrollable.
+      if (dropdownRef.current?.contains(e.target as Node)) return;
+      setOpen(false);
+      setQuery("");
+    }
+    document.addEventListener("mousedown", onDocPointerDown);
     document.addEventListener("keydown", onKey);
+    window.addEventListener("scroll", onScrollOrResize, true);
+    window.addEventListener("resize", onScrollOrResize);
     inputRef.current?.focus();
     return () => {
-      document.removeEventListener("mousedown", onDocClick);
+      document.removeEventListener("mousedown", onDocPointerDown);
       document.removeEventListener("keydown", onKey);
+      window.removeEventListener("scroll", onScrollOrResize, true);
+      window.removeEventListener("resize", onScrollOrResize);
     };
   }, [open]);
 
@@ -65,8 +94,9 @@ export function ChainSelect({
       <span className="eyebrow">{label}</span>
       <button
         type="button"
+        ref={buttonRef}
         className="select-shell"
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => (open ? setOpen(false) : openDropdown())}
         aria-haspopup="listbox"
         aria-expanded={open}
       >
@@ -75,52 +105,60 @@ export function ChainSelect({
         <span className="chevron">{open ? "▲" : "▼"}</span>
       </button>
 
-      {open && (
-        <div className="dropdown">
-          <input
-            ref={inputRef}
-            className="search"
-            placeholder="Search chains…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-          <div className="options scrollbar-thin">
-            {options.length === 0 && <div className="empty">No chains match “{query}”</div>}
-            {options.map((c) => {
-              const wired = peerStatus ? peerStatus[c.eid] : undefined;
-              return (
-                <button
-                  type="button"
-                  key={c.key}
-                  className={`option ${c.key === value ? "selected" : ""}`}
-                  onClick={() => pick(c.key)}
-                >
-                  <span className="dot" style={{ background: c.color }} />
-                  <span className="label">{c.label}</span>
-                  {wired === true && <span className="peer ok">wired</span>}
-                  {wired === false && <span className="peer no">no peer</span>}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {open &&
+        mounted &&
+        rect &&
+        createPortal(
+          <div
+            className="lz-chain-dropdown"
+            ref={dropdownRef}
+            style={{ top: rect.top, left: rect.left, width: rect.width }}
+          >
+            <input
+              ref={inputRef}
+              className="search"
+              placeholder="Search chains…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+            <div className="options scrollbar-thin">
+              {options.length === 0 && <div className="empty">No chains match “{query}”</div>}
+              {options.map((c) => {
+                const wired = peerStatus ? peerStatus[c.eid] : undefined;
+                return (
+                  <button
+                    type="button"
+                    key={c.key}
+                    className={`option ${c.key === value ? "selected" : ""}`}
+                    onClick={() => pick(c.key)}
+                  >
+                    <span className="dot" style={{ background: c.color }} />
+                    <span className="label">{c.label}</span>
+                    {wired === true && <span className="peer ok">wired</span>}
+                    {wired === false && <span className="peer no">no peer</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>,
+          document.body
+        )}
 
       <style jsx>{`
         .chain-select {
           position: relative;
           display: flex;
           flex-direction: column;
-          gap: 6px;
+          gap: 7px;
         }
         .select-shell {
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 10px;
           background: var(--bg-panel-raised);
           border: 1px solid var(--hairline);
           border-radius: var(--radius-sm);
-          padding: 10px 12px;
+          padding: 13px 14px;
           transition: border-color 0.15s ease;
           cursor: pointer;
           width: 100%;
@@ -133,30 +171,29 @@ export function ChainSelect({
           outline: none;
         }
         .dot {
-          width: 8px;
-          height: 8px;
+          width: 9px;
+          height: 9px;
           border-radius: 50%;
           flex-shrink: 0;
         }
         .current {
           flex: 1;
           color: var(--text-primary);
-          font-size: 14px;
+          font-size: 15.5px;
           font-weight: 600;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
         }
         .chevron {
-          font-size: 10px;
+          font-size: 11px;
           color: var(--text-muted);
         }
-        .dropdown {
-          position: absolute;
-          top: calc(100% + 6px);
-          left: 0;
-          right: 0;
-          z-index: 30;
+      `}</style>
+      <style jsx global>{`
+        .lz-chain-dropdown {
+          position: fixed;
+          z-index: 1000;
           background: #1e293b;
           border: 1px solid var(--hairline-strong);
           border-radius: var(--radius-md);
@@ -165,63 +202,69 @@ export function ChainSelect({
           display: flex;
           flex-direction: column;
         }
-        .search {
+        .lz-chain-dropdown .search {
           background: var(--bg-panel-raised);
           border: none;
           border-bottom: 1px solid var(--hairline);
           color: var(--text-primary);
-          padding: 10px 12px;
-          font-size: 13px;
+          padding: 12px 14px;
+          font-size: 14.5px;
           outline: none;
         }
-        .options {
-          max-height: 260px;
+        .lz-chain-dropdown .options {
+          max-height: 280px;
           overflow-y: auto;
         }
-        .empty {
-          padding: 12px;
-          font-size: 12.5px;
+        .lz-chain-dropdown .empty {
+          padding: 14px;
+          font-size: 13.5px;
           color: var(--text-muted);
         }
-        .option {
+        .lz-chain-dropdown .option {
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 9px;
           width: 100%;
-          padding: 9px 12px;
+          padding: 11px 14px;
           background: transparent;
           border: none;
           color: var(--text-primary);
-          font-size: 13.5px;
+          font-size: 14.5px;
           text-align: left;
           cursor: pointer;
           transition: background-color 0.1s ease;
         }
-        .option:hover {
+        .lz-chain-dropdown .option .dot {
+          width: 9px;
+          height: 9px;
+          border-radius: 50%;
+          flex-shrink: 0;
+        }
+        .lz-chain-dropdown .option:hover {
           background: rgba(148, 163, 184, 0.12);
         }
-        .option.selected {
+        .lz-chain-dropdown .option.selected {
           background: rgba(6, 182, 212, 0.12);
         }
-        .option .label {
+        .lz-chain-dropdown .option .label {
           flex: 1;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
         }
-        .peer {
-          font-size: 10px;
+        .lz-chain-dropdown .peer {
+          font-size: 10.5px;
           letter-spacing: 0.04em;
           text-transform: uppercase;
-          padding: 2px 6px;
+          padding: 3px 7px;
           border-radius: 999px;
           flex-shrink: 0;
         }
-        .peer.ok {
+        .lz-chain-dropdown .peer.ok {
           color: var(--accent-verified);
           background: rgba(52, 211, 153, 0.12);
         }
-        .peer.no {
+        .lz-chain-dropdown .peer.no {
           color: var(--text-muted);
           background: rgba(148, 163, 184, 0.12);
         }

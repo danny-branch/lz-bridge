@@ -567,7 +567,7 @@ export function BridgeCard() {
         .bridge-card {
           display: flex;
           flex-direction: column;
-          gap: 20px;
+          gap: 24px;
         }
         .top-row {
           display: flex;
@@ -577,17 +577,17 @@ export function BridgeCard() {
         .route-row {
           display: flex;
           align-items: stretch;
-          gap: 4px;
+          gap: 6px;
         }
         .panel {
           flex: 1;
-          padding: 16px;
+          padding: 20px;
           display: flex;
           flex-direction: column;
-          gap: 10px;
+          gap: 12px;
         }
         .balance-line {
-          font-size: 12.5px;
+          font-size: 13.5px;
           color: var(--text-muted);
         }
         .balance-row {
@@ -621,9 +621,9 @@ export function BridgeCard() {
           animation: spin 0.6s linear infinite;
         }
         .updated-line {
-          font-size: 10.5px;
+          font-size: 11.5px;
           color: var(--accent-verified);
-          opacity: 0.75;
+          opacity: 0.85;
         }
         @keyframes spin {
           to {
@@ -631,28 +631,28 @@ export function BridgeCard() {
           }
         }
         .fields {
-          padding: 18px;
+          padding: 22px;
           display: flex;
           flex-direction: column;
-          gap: 14px;
+          gap: 16px;
         }
         .field {
           display: flex;
           flex-direction: column;
-          gap: 6px;
+          gap: 7px;
         }
         .field-row {
           display: grid;
           grid-template-columns: 1fr 1.4fr;
-          gap: 14px;
+          gap: 16px;
         }
         input {
           background: var(--bg-panel-raised);
           border: 1px solid var(--hairline);
           border-radius: var(--radius-sm);
-          padding: 10px 12px;
+          padding: 12px 14px;
           color: var(--text-primary);
-          font-size: 14px;
+          font-size: 15px;
           outline: none;
           transition: border-color 0.15s ease, box-shadow 0.15s ease;
         }
@@ -661,7 +661,7 @@ export function BridgeCard() {
           box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.25);
         }
         .hint {
-          font-size: 12px;
+          font-size: 13px;
           color: var(--text-muted);
         }
         .hint.alert {
@@ -683,9 +683,9 @@ export function BridgeCard() {
           background: var(--bg-panel-raised);
           border: 1px solid var(--hairline);
           color: var(--text-primary);
-          padding: 10px 18px;
+          padding: 12px 22px;
           border-radius: var(--radius-md);
-          font-size: 13px;
+          font-size: 14px;
           font-weight: 600;
           cursor: pointer;
           transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
