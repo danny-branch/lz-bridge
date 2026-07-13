@@ -1,0 +1,114 @@
+:root {
+  --bg-base: #0f172a;
+  --bg-panel: rgba(30, 41, 59, 0.5);
+  --bg-panel-raised: rgba(51, 65, 85, 0.5);
+  --hairline: rgba(51, 65, 85, 0.8);
+  --hairline-strong: #334155;
+  --text-primary: #f1f5f9;
+  --text-muted: #94a3b8;
+
+  --accent-route: #22d3ee; /* packet in flight */
+  --accent-verified: #34d399; /* delivered */
+  --accent-alert: #fb7185; /* stuck / error */
+  --accent-idle: #64748b;
+
+  --gradient-from: #06b6d4;
+  --gradient-to: #2563eb;
+  --gradient-from-hover: #22d3ee;
+  --gradient-to-hover: #3b82f6;
+
+  --font-display: var(--font-mono), "IBM Plex Mono", ui-monospace, monospace;
+  --font-body: var(--font-sans), "Poppins", ui-sans-serif, sans-serif;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font-family: var(--font-body);
+}
+
+::selection {
+  background: var(--accent-route);
+  color: #0f172a;
+}
+
+.mono {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.container {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+
+.eyebrow {
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.card {
+  background: var(--bg-panel);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+  transition: border-color 0.2s ease;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: var(--hairline-strong);
+  border-radius: 3px;
+}
+
+@keyframes dash-flow {
+  to {
+    stroke-dashoffset: -32;
+  }
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
