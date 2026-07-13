@@ -7,7 +7,7 @@ import {
   base,
   avalanche,
 } from "viem/chains";
-import { defineChain } from "viem";
+import { defineChain, type Chain } from "viem";
 
 // HyperEVM (Hyperliquid) isn't in viem/chains yet — defined manually.
 // Verify RPC/explorer URLs before production use; LayerZero eid confirmed at 30367.
@@ -92,7 +92,7 @@ const DEFAULT_ENDPOINT_V2 = "0x1a44076050125825900e736c501f859c50fE728c" as cons
 export type LzChainConfig = {
   key: string;
   label: string;
-  viemChain: typeof mainnet;
+  viemChain: Chain;
   eid: number;
   endpointV2: `0x${string}`;
   color: string; // accent used for this chain's route node in the UI
@@ -106,9 +106,9 @@ export const LZ_CHAINS: LzChainConfig[] = [
   { key: "arbitrum", label: "Arbitrum", viemChain: arbitrum, eid: 30110, endpointV2: DEFAULT_ENDPOINT_V2, color: "#5FC9E8" },
   { key: "optimism", label: "Optimism", viemChain: optimism, eid: 30111, endpointV2: DEFAULT_ENDPOINT_V2, color: "#E85D8A" },
   { key: "base", label: "Base", viemChain: base, eid: 30184, endpointV2: DEFAULT_ENDPOINT_V2, color: "#5B8DEF" },
-  { key: "hyperliquid", label: "HyperEVM", viemChain: hyperEvm as unknown as typeof mainnet, eid: 30367, endpointV2: DEFAULT_ENDPOINT_V2, color: "#3DE8B9" },
+  { key: "hyperliquid", label: "HyperEVM", viemChain: hyperEvm, eid: 30367, endpointV2: DEFAULT_ENDPOINT_V2, color: "#3DE8B9" },
   // Robinhood's EndpointV2 differs from the shared default above — verified 2026-07-12.
-  { key: "robinhood", label: "Robinhood", viemChain: robinhoodChain as unknown as typeof mainnet, eid: 30416, endpointV2: "0x6f475642a6e85809b1c36fa62763669b1b48dd5b", color: "#00C805" },
+  { key: "robinhood", label: "Robinhood", viemChain: robinhoodChain, eid: 30416, endpointV2: "0x6f475642a6e85809b1c36fa62763669b1b48dd5b", color: "#00C805" },
 ];
 
 export function chainByKey(key: string) {
