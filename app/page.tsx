@@ -13,14 +13,6 @@ export default function Home() {
           Point at any OFT or OFTAdapter address, pick a source and destination chain, and send.
           Detection, quoting, approval, and delivery tracking happen inline — nothing to run by hand.
         </p>
-        <div className="chain-row">
-          {LZ_CHAINS.map((c) => (
-            <span key={c.key} className="chain-badge mono">
-              <span className="chain-dot" style={{ background: c.color }} />
-              {c.label}
-            </span>
-          ))}
-        </div>
       </header>
       <BridgeCard />
       <footer className="footer mono">
@@ -52,29 +44,6 @@ export default function Home() {
           line-height: 1.6;
           max-width: 640px;
           margin: 0;
-        }
-        .chain-row {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-          margin-top: 4px;
-        }
-        .chain-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 11px;
-          color: var(--text-muted);
-          background: var(--bg-panel);
-          backdrop-filter: blur(8px);
-          border: 1px solid var(--hairline);
-          border-radius: 999px;
-          padding: 5px 10px 5px 8px;
-        }
-        .chain-dot {
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
         }
         .footer {
           margin-top: 40px;

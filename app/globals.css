@@ -10,7 +10,7 @@
   --accent-route: #22d3ee; /* packet in flight */
   --accent-verified: #34d399; /* delivered */
   --accent-alert: #fb7185; /* stuck / error */
-  --accent-idle: #64748b;
+  --accent-idle: #94a3b8;
 
   --gradient-from: #06b6d4;
   --gradient-to: #2563eb;

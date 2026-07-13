@@ -10,6 +10,7 @@ import {
 import { oftAbi, erc20Abi } from "@/lib/abi";
 import {
   chainByKey,
+  LZ_CHAINS,
   DEFAULT_EXTRA_OPTIONS,
   DEFAULT_SHARED_DECIMALS,
 } from "@/lib/chains";
@@ -62,6 +63,8 @@ export function BridgeCard() {
   const [amount, setAmount] = useState("");
 
   const [detection, setDetection] = useState<Detection>(EMPTY_DETECTION);
+  const [peersByEid, setPeersByEid] = useState<Record<number, boolean>>({});
+  const [peersLoading, setPeersLoading] = useState(false);
   const [balance, setBalance] = useState<bigint | null>(null);
   const [allowance, setAllowance] = useState<bigint | null>(null);
   const [isRefreshingBalance, setIsRefreshingBalance] = useState(false);
@@ -179,6 +182,46 @@ export function BridgeCard() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tokenAddress, srcKey, dstKey, srcPublicClient]);
+
+  // --- Peer sweep: one multicall to peers(eid) for every other chain, so the
+  // destination picker can show which networks this OFT can actually reach. ---
+  useEffect(() => {
+    let cancelled = false;
+    async function run() {
+      if (!isAddress(tokenAddress) || !srcPublicClient || !detection.isOft) {
+        setPeersByEid({});
+        return;
+      }
+      const targets = LZ_CHAINS.filter((c) => c.key !== srcKey);
+      setPeersLoading(true);
+      try {
+        const results = await srcPublicClient.multicall({
+          contracts: targets.map((c) => ({
+            address: tokenAddress,
+            abi: oftAbi,
+            functionName: "peers",
+            args: [c.eid],
+          })),
+          allowFailure: true,
+        });
+        if (cancelled) return;
+        const zeroBytes32 = ("0x" + "0".repeat(64)) as `0x${string}`;
+        const map: Record<number, boolean> = {};
+        results.forEach((r, i) => {
+          map[targets[i].eid] = r.status === "success" && r.result !== zeroBytes32;
+        });
+        setPeersByEid(map);
+      } catch {
+        if (!cancelled) setPeersByEid({});
+      } finally {
+        if (!cancelled) setPeersLoading(false);
+      }
+    }
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [tokenAddress, srcKey, srcPublicClient, detection.isOft]);
 
   // --- Balance + allowance refresh ---
   const refreshBalanceAndAllowance = useCallback(async () => {
@@ -425,7 +468,13 @@ export function BridgeCard() {
         <RouteLine srcColor={srcChain.color} dstColor={dstChain.color} status={status} />
 
         <div className="panel card">
-          <ChainSelect label="Destination" value={dstKey} onChange={setDstKey} exclude={srcKey} />
+          <ChainSelect
+            label="Destination"
+            value={dstKey}
+            onChange={setDstKey}
+            exclude={srcKey}
+            peerStatus={detection.isOft ? peersByEid : undefined}
+          />
           <div className="mono balance-line">
             {detection.peerWired === false ? (
               <span style={{ color: "var(--accent-alert)" }}>peer not wired for this eid</span>
@@ -435,6 +484,9 @@ export function BridgeCard() {
               "—"
             )}
           </div>
+          {peersLoading && (
+            <div className="mono updated-line">scanning {LZ_CHAINS.length - 1} chains for wired peers…</div>
+          )}
           {destInfo.decimals != null && destInfo.balance != null && (
             <div className="mono updated-line" style={{ color: "var(--text-muted)", opacity: 1 }}>
               balance: {formatAmount(destInfo.balance, destInfo.decimals)} {destInfo.symbol} · live

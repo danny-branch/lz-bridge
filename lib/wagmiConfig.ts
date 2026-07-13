@@ -20,11 +20,14 @@ export const wagmiConfig = createConfig({
       ? [walletConnect({ projectId: walletConnectProjectId, showQrModal: true })]
       : []),
   ],
-  // Each chain gets its default RPC plus public fallbacks, wrapped in fallback()
-  // so a single RPC outage doesn't stop reads/writes — viem retries the next one.
+  // Each chain gets its curated fallback RPCs (if any) plus its viem-provided
+  // defaults, wrapped in fallback() so a single RPC outage doesn't stop
+  // reads/writes — viem retries the next one in the list.
   transports: Object.fromEntries(
     LZ_CHAINS.map((c) => {
-      const urls = RPC_FALLBACKS[c.key] ?? [];
+      const curated = RPC_FALLBACKS[c.key] ?? [];
+      const defaults = c.viemChain.rpcUrls.default.http;
+      const urls = Array.from(new Set([...curated, ...defaults]));
       return [c.viemChain.id, fallback(urls.map((url) => http(url)))];
     })
   ),
